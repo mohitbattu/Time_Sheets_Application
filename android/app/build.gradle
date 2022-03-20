@@ -27,7 +27,7 @@ apply plugin: 'com.google.gms.google-services'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -57,6 +57,8 @@ flutter {
 
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:27.0.0')
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    api 'com.google.firebase:firebase-ml-vision-image-label-model:17.0.2'
     implementation 'com.google.firebase:firebase-analytics'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

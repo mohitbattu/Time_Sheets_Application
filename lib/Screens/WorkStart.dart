@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:timesheet_app/Backend/sheetscredentials.dart';
+import 'package:timesheet_app/Backend/SharedPrefrences.dart';
+import 'package:timesheet_app/Backend/loading/loading.dart';
 import 'package:timesheet_app/Backend/workstartbackend.dart';
 import 'package:timesheet_app/Screens/ViewCalendar.dart';
 import 'BreakStart.dart';
 
 class WorkStart extends StatefulWidget {
-  var location;
-  WorkStart({this.location});
+  var carryinfo,location;
+  
+  WorkStart({this.carryinfo,this.location});
   @override
   _WorkStartState createState() => _WorkStartState();
 }
 class _WorkStartState extends State<WorkStart> {
+  final _formKey = GlobalKey<FormState>();
+  DateTime lastPressed;
+  bool isloading = false;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return isloading ? Loading():Form(
+      key: _formKey,
+          child:  Scaffold(
         backgroundColor: const Color(0xFF3F3838),
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -27,7 +34,27 @@ class _WorkStartState extends State<WorkStart> {
           backgroundColor: Colors.black,
           elevation: 50.0,
         ),
-        body: SafeArea(
+        body:  WillPopScope(
+          onWillPop: () async{
+            final now=DateTime.now();
+            final maxDuration = Duration(seconds: 1);
+            final isWarning = lastPressed == null || 
+            now.difference(lastPressed)>maxDuration;
+            if(isWarning){
+              lastPressed=DateTime.now();
+              final snackBar=SnackBar(
+                content: Text('Double Tap to Close App'),
+                duration: maxDuration,
+                );
+                ScaffoldMessenger.of(context)
+                ..removeCurrentSnackBar()
+                ..showSnackBar(snackBar);
+                return false;
+            } else{
+              return true;
+            }
+          },
+          child: SafeArea(
           child: SingleChildScrollView(
               child: Container(
                   width: MediaQuery.of(context).size.width,
@@ -55,21 +82,13 @@ class _WorkStartState extends State<WorkStart> {
                         //hoverElevation: 5000,
                         highlightElevation: 5,
                         onPressed: () async{
-                          //TODO Write a navigation route
-                          await createFolder('Work Start');
-                          String name = 'Work Start';
-                          var data=dateTime();
-                          var id=data["day"];
-                          print("Day "+id);
-                          
-                          var date=data["Date"];
-                          print(" Date"+date);
-                          await takeImage(name);
-                          print(widget.location);
-                          await UpdateStartWork(int.parse(id),date);
-                          await UpdateWorkLocation(int.parse(id),widget.location.toString());
-                         
-                          Navigator.push(context, MaterialPageRoute(builder:(context) => BreakStart()));
+                          //TODO Start Work Location
+                          setState(()=> isloading=true);
+                          print(widget.location.toString());
+                          await workStart(widget.location.toString(),widget.carryinfo.toString());
+                          await savingWorkStart(1);
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => BreakStart(caryinfo: widget.carryinfo.toString())));
+                        setState(()=> isloading=false);
                         },
                       ),
                       SizedBox(height: 50),
@@ -93,23 +112,16 @@ class _WorkStartState extends State<WorkStart> {
                         highlightElevation: 5,
                         onPressed: () async{
                           //TODO Write a navigation route
-                          await createFolder('Work End');
-                          String name = 'Work End';
-                          await takeImage(name);
-                          var d=DateTime.now().toString();
-                          var up=d.split(" ");
-                          var mod=up[1].split(".");
-                          print(mod[0]);
-                          var id=up[0].split('-');
-                          print(id[2]);
-                         
-                          UpdateWorkEnd(int.parse(id[2]),mod[0]);
-                         
-                          Navigator.push(context, MaterialPageRoute(builder:(context) => ViewCalendar()));
+                          setState(()=> isloading=true);
+                          await workEnd(widget.location.toString(),widget.carryinfo.toString());
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => ViewCalendar()));
+                          setState(()=> isloading=false);
                         },
                       ),
                     ],
                   ))),
-        ));
+        )),
+          ),
+    );
   }
 }

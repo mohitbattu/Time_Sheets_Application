@@ -1,19 +1,25 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:timesheet_app/Backend/SharedPrefrences.dart';
+import 'package:timesheet_app/Backend/loading/loading.dart';
 import 'package:timesheet_app/Backend/sheetscredentials.dart';
+import 'package:timesheet_app/Backend/workstartbackend.dart';
 import 'ViewCalendar.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 class BreakStart extends StatefulWidget {
-  
+   var caryinfo;
+   BreakStart({this.caryinfo});
   @override
   _BreakStartState createState() => _BreakStartState();
 }
 
 class _BreakStartState extends State<BreakStart> {
+  final _formKey = GlobalKey<FormState>();
+  bool isloading = false;
   bool check;
+  DateTime lastPressed;
   void updatingUI() async{
     bool got=await getBool();
     setState((){
@@ -22,23 +28,8 @@ class _BreakStartState extends State<BreakStart> {
   }
 File storedimage;
 final picker = ImagePicker();
-Future<void> takeImage(String fileName) async {
-    final image=await picker.getImage(source: ImageSource.camera);
-     storedimage = File(image.path);
-     print(storedimage);
-    await storedimage.rename("storage/emulated/0/ViewTime/"+"$fileName/"+DateFormat('h:mm a').format(DateTime.now()).toString()+".jpg");
-}
-Future<String> createFolder(String foldername) async{
-String folderName=foldername;
-Directory path= Directory("storage/emulated/0/ViewTime/$folderName");
-if ((await path.exists())){
-  print("Folder Already Exists");
-}else{
-  print("Folder does not exist");
-  path.create();
-}
-return path.toString().split('/').last;
-}
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -47,7 +38,9 @@ return path.toString().split('/').last;
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return isloading ? Loading():Form(
+      key: _formKey,
+          child: Scaffold(
       backgroundColor: const Color(0xFF3F3838),
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -61,7 +54,27 @@ return path.toString().split('/').last;
         backgroundColor: Colors.black,
         elevation: 50.0,
       ),
-      body: SafeArea(
+      body: WillPopScope(
+          onWillPop: () async{
+            final now=DateTime.now();
+            final maxDuration = Duration(seconds: 1);
+            final isWarning = lastPressed == null || 
+            now.difference(lastPressed)>maxDuration;
+            if(isWarning){
+              lastPressed=DateTime.now();
+              final snackBar=SnackBar(
+                content: Text('Double Tap to Close App'),
+                duration: maxDuration,
+                );
+                ScaffoldMessenger.of(context)
+                ..removeCurrentSnackBar()
+                ..showSnackBar(snackBar);
+                return false;
+            } else{
+              return true;
+            }
+          },
+          child: SafeArea(
           child: SingleChildScrollView(
               child: Container(
                   width: MediaQuery.of(context).size.width,
@@ -84,33 +97,14 @@ return path.toString().split('/').last;
                         ),
                         elevation: 50,
                         focusElevation: 50,
-                        //hoverElevation: 5000,
                         highlightElevation: 5,
                         onPressed: () async{
-                          //TODO Write a navigation route
-                          await createFolder('Break Start');
-                          String name = 'Break Start';
-                          await takeImage(name);
-                          await savingBool(false);
-                          /*------------------------*/
-                          var d=DateTime.now().toString();
-                          var up=d.split(" ");
-                          var mod=up[1].split(".");
-                          print(mod[0]);
-                          var id=up[0].split('-');
-                          print(id[2]);
-                          var number= await getInt();
-                          for(int i=0;i<1;i++){
-                          if(number<3){
-                          await UpdateBreakStart(int.parse(id[2]),mod[0],number);
-                          await savingCount(number+2);
-                          }
-                          else{//TODO Include POPUps
-                            print("You Reached Max Limit");
-                          }
-                          }
-                          /*-------------------------*/
-                          updatingUI();
+                          //TODO BREAK START
+                         setState(()=> isloading=true);
+                        await breakStart(context,widget.caryinfo.toString());
+                        /*-------------------------*/
+                        updatingUI();
+                        setState(()=> isloading=false);
                         },
                       ):
                       MaterialButton(
@@ -132,30 +126,12 @@ return path.toString().split('/').last;
                         //hoverElevation: 5000,
                         highlightElevation: 5,
                         onPressed: () async{
-                          //TODO Write a navigation route
-                          await createFolder('Break End');
-                          String name = 'Break End';
-                          await takeImage(name);
-                          await savingBool(true);
-                          /*--------------------*/
-                          var d=DateTime.now().toString();
-                          var up=d.split(" ");
-                          var mod=up[1].split(".");
-                          print(mod[0]);
-                          var id=up[0].split('-');
-                          print(id[2]);
-                          var number= await getInt1();
-                          for(int i=0;i<1;i++){
-                          if(number<3){
-                          await UpdateBreakEnd(int.parse(id[2]),mod[0],number);
-                          await savingCount1(number+2);
-                          }
-                          else{//TODO Include POPUps
-                            print("You Reached Max Limit");
-                          }
-                          }
+                          //TODO BREAK END
+                         setState(()=> isloading=true);
+                         await breakEnd(context,widget.caryinfo.toString());
                          /*--------------------*/
                           updatingUI();
+                         setState(()=> isloading=false);
                         },
                       ),
                       SizedBox(height: 100),
@@ -178,39 +154,21 @@ return path.toString().split('/').last;
                         //hoverElevation: 5000,
                         highlightElevation: 5,
                         onPressed: () async{
-                          //TODO Write a navigation route
-                          await createFolder('Work End');
-                          String name = 'Work End';
-                          await takeImage(name);
-                          /*--------------------*/
-                          var d=DateTime.now().toString();
-                          var up=d.split(" ");
-                          var mod=up[1].split(".");
-                          print(mod[0]);
-                          var id=up[0].split('-');
-                          print(id[2]);
-                          await savingCount(0);
-                          await savingCount1(0);
-                          if(check==false){
-                          var number= await getInt1();
-                          for(int i=0;i<1;i++){
-                          if(number<3){
-                          await UpdateBreakEnd(int.parse(id[2]),mod[0],number);
-                          await savingCount1(number+2);
-                          }
-                          else{//TODO Include POPUps,Loading Bar
-                            print("You Reached Max Limit");
-                          }
-                          }
-                         }
-                         /*--------------------*/
-                          await savingBool(true);
-                          await UpdateWorkEnd(int.parse(id[2]),mod[0]);
-                          Navigator.push(context, MaterialPageRoute(builder:(context) => ViewCalendar()));
+                          //TODO WORK END
+                           setState(()=> isloading=true);
+                          await workEndingSecnd(context,widget.caryinfo.toString(),check);
+                          await savingWorkStart(0);
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder:(context) => ViewCalendar()));
+                           setState(()=> isloading=false);
                         },
                       ),
                     ],
-                  )))),
+                  ),
+                ),
+              ),
+                ),
+    ),
+          ),
     );
   }
 }

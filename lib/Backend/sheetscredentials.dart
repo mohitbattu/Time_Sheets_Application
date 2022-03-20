@@ -12,43 +12,77 @@ const _credentials =r'''{
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebasetosheets%40timesheet-78e8e.iam.gserviceaccount.com"
 }
 ''';
+Map<String,String> sheetCredentials(String user){
+  var datauser = user; 
+   switch(datauser) { 
+      case "user1": {  
+        const _user1sheet = '109KmggnayMFE6wKyX3ET4VU1b408vxp9OfnXY27JZKc';
+        String user1="user1timesheet";
+        var data = {'0': _user1sheet,'1': user1};
+        return data;
+        } 
+      break; 
+     
+      case "user2": {  
+        const _user2sheet="1gyQwS1CtgVXs280vOaXJdrLtsLTYVpq1iji2ll9GXSI";
+        String user2="user2timesheet";
+        var data = {'0': _user2sheet,'1': user2};
+        return data;
+        }
+      case "user3": { 
+        const _user3sheet="1u29jSJW_ivdJ01PP00Ga5TavcqecBchgxxHDNw2TtEs";
+        String user3="user3timesheet";
+        var data = {'0': _user3sheet,'1': user3};
+        return data;
+      } 
+      break; 
+      default:
+      break; 
+   } 
 
-const _spreadsheetId = '109KmggnayMFE6wKyX3ET4VU1b408vxp9OfnXY27JZKc';
 
-Future<void> UpdateStartWork(int id,String data) async{
+
+}
+Future<void> UpdateStartWork(int id,String data, String user) async{
+  var dataofuser=sheetCredentials(user);
   final gsheets = GSheets(_credentials);
-  final ss = await gsheets.spreadsheet(_spreadsheetId);
-  var sheet = ss.worksheetByTitle("user1timesheet");
+  final ss = await gsheets.spreadsheet(dataofuser['0']);
+  var sheet = ss.worksheetByTitle(dataofuser['1']);
   print(sheet.values.allRows());
   print(await sheet.values.insertValue(data, column: 7, row: id+10));
 }
-Future<void> UpdateWorkLocation(int id,String data) async{
+
+Future<void> UpdateWorkLocation(int id,String data, String user) async{
+  var dataofuser=sheetCredentials(user);
   final gsheets = GSheets(_credentials);
-  final ss = await gsheets.spreadsheet(_spreadsheetId);
-  var sheet = ss.worksheetByTitle("user1timesheet");
+  final ss = await gsheets.spreadsheet(dataofuser['0']);
+  var sheet = ss.worksheetByTitle(dataofuser['1']);
   print(await sheet.values.insertValue(data, column: 2, row: id+10));
 }
-Future<void> UpdateWorkEnd(int id,String data) async{
+Future<void> UpdateWorkEnd(int id,String data, String user) async{
+  var dataofuser= sheetCredentials(user);
   final gsheets = GSheets(_credentials);
-  final ss = await gsheets.spreadsheet(_spreadsheetId);
-  var sheet = ss.worksheetByTitle("user1timesheet");
+  final ss = await gsheets.spreadsheet(dataofuser['0']);
+  var sheet = ss.worksheetByTitle(dataofuser['1']);
   print(sheet.values);
   print(await sheet.values.insertValue(data, column: 8, row: id+10));
 }
 
-Future<void> UpdateBreakEnd(int id,String data,int count) async{
+Future<void> UpdateBreakEnd(int id,String data,int count, String user) async{
+  var dataofuser= sheetCredentials(user);
   final gsheets = GSheets(_credentials);
-  final ss = await gsheets.spreadsheet(_spreadsheetId);
-  var sheet = ss.worksheetByTitle("user1timesheet");
+  final ss = await gsheets.spreadsheet(dataofuser['0']);
+  var sheet = ss.worksheetByTitle(dataofuser['1']);
   var number=count+10;
   print("UPDATEBREAKEND");
   print(number);
   print(await sheet.values.insertValue(data, column: number, row: id+10));
 }
-Future<void> UpdateBreakStart(int id,String data,int count) async{
+Future<void> UpdateBreakStart(int id,String data,int count, String user) async{
+  var dataofuser= sheetCredentials(user);
   final gsheets = GSheets(_credentials);
-  final ss = await gsheets.spreadsheet(_spreadsheetId);
-  var sheet = ss.worksheetByTitle("user1timesheet");
+  final ss = await gsheets.spreadsheet(dataofuser['0']);
+  var sheet = ss.worksheetByTitle(dataofuser['1']);
   var number=9+count;
   print("UPDATEBREAKSTART");
   print(number);

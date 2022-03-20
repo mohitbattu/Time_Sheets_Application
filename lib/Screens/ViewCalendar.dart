@@ -1,34 +1,37 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:timesheet_app/Backend/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timesheet_app/Backend/SharedPrefrences.dart';
+import 'package:timesheet_app/Backend/loading/loading.dart';
 import 'package:timesheet_app/Screens/LoginScreen.dart';
 import 'ListingAllFolders.dart';
 import 'Setlocation.dart';
-import 'calendar.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:path_provider_ex/path_provider_ex.dart';
+
 class ViewCalendar extends StatefulWidget {
+  var userinfor;
+  ViewCalendar({this.userinfor});
   @override
   _ViewCalendarState createState() => _ViewCalendarState();
 }
-
+signOutCredentials() async{
+final FirebaseAuth _auth = FirebaseAuth.instance;
+SharedPreferences delPrefs= await SharedPreferences.getInstance();
+delPrefs.remove('checking');
+delPrefs.remove('Count1');
+delPrefs.remove('Count');
+delPrefs.remove('userinf');
+delPrefs.remove('email');
+await _auth.signOut();
+}
 class _ViewCalendarState extends State<ViewCalendar> {
-  Future<void> createFolder(String foldername) async{
-String folderName=foldername;
-Directory path= Directory('/storage/emulated/0'+"/$folderName");
-await Permission.storage.request();
-if ((await path.exists())){
-  print("Folder Already Exists");
-  print(path);
-}else{
-  print("Folder does not exist");
-  path.create();
-}
-}
+  final _formKey = GlobalKey<FormState>();
+  bool isloading = false;
+  DateTime lastPressed;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return isloading ? Loading():Form(
+      key: _formKey,
+          child:  Scaffold(
       backgroundColor: const Color(0xFF3F3838),
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -43,7 +46,27 @@ if ((await path.exists())){
         backgroundColor: Colors.black,
         elevation: 50.0,
       ),
-      body: SafeArea(
+      body: WillPopScope(
+          onWillPop: () async{
+            final now=DateTime.now();
+            final maxDuration = Duration(seconds: 1);
+            final isWarning = lastPressed == null || 
+            now.difference(lastPressed)>maxDuration;
+            if(isWarning){
+              lastPressed=DateTime.now();
+              final snackBar=SnackBar(
+                content: Text('Double Tap to Close App'),
+                duration: maxDuration,
+                );
+                ScaffoldMessenger.of(context)
+                ..removeCurrentSnackBar()
+                ..showSnackBar(snackBar);
+                return false;
+            } else{
+              return true;
+            }
+          },
+          child: SafeArea(
         child: SingleChildScrollView(
           child: Container(
             width: MediaQuery.of(context).size.width,
@@ -69,13 +92,13 @@ if ((await path.exists())){
                     ),
                     onPressed: () {
                       //TODO Write the navigation route
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MaterialApp(
-                                  debugShowCheckedModeBanner: false,
-                                  theme: dark,
-                                  home: Calendar())));
+                      // Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //         builder: (context) => MaterialApp(
+                      //             debugShowCheckedModeBanner: false,
+                      //             theme: dark,
+                      //             home: Calendar())));
                     },
                   ),
                 ),
@@ -89,7 +112,7 @@ if ((await path.exists())){
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                     child: Text(
-                      "Monthly Time Sheet",
+                      "Year Plan",
                       style: new TextStyle(
                           fontFamily: 'Open Sans',
                           fontSize: 16.0,
@@ -121,11 +144,22 @@ if ((await path.exists())){
                     ),
                     onPressed: () async{
                       //TODO Write the navigation route
-                      await createFolder('ViewTime');
-                      Navigator.push(
+                      String em=await gottEmail();
+                      print(em);
+                      setState(()=> isloading=true);
+                      String carried=widget.userinfor.toString();
+                      print(carried);
+                      if(carried!="null"){
+                        await savingUser(widget.userinfor.toString());
+                      }else{
+                        carried=await getUser();
+                      }
+                      print(carried);
+                      Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => SetLocation()));
+                              builder: (context) => SetLocation(carryuser: carried)));
+                    setState(()=> isloading=false);
                     },
                   ),
                 ),
@@ -146,9 +180,17 @@ if ((await path.exists())){
                           fontWeight: FontWeight.bold,
                           color: Colors.white),
                     ),
-                    onPressed: () {
+                    onPressed: () async{
                       //TODO Write the navigation route
-                      Navigator.push(context, MaterialPageRoute(builder:(context) => ListingAllFolders()));
+                      setState(()=> isloading=true);
+                      String cd1=widget.userinfor.toString();
+                      if(cd1!="null"){
+                        await savingUser(widget.userinfor.toString());
+                      }else{
+                        cd1=await getUser();
+                      }
+                      Navigator.push(context, MaterialPageRoute(builder:(context) => ListingAllFolders(userinfo: cd1)));
+                    setState(()=> isloading=false);
                     },
                   ),
                 ),
@@ -178,12 +220,15 @@ if ((await path.exists())){
                           Icon(Icons.logout,
                                 size: 25, color: Colors.white),   
                         ]),
-                    onPressed: () {
+                    onPressed: () async{
                       //TODO Write the navigation route
-                      Navigator.push(
+                      setState(()=> isloading=true);
+                      await signOutCredentials();
+                      Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => LoginScreen()));
+                      setState(()=> isloading=false);
                       //Navigator.push(context, MaterialPageRoute(builder:(context) => SetLocation()));
                     },
                   ),
@@ -193,6 +238,8 @@ if ((await path.exists())){
           ),
         ),
       ),
+    ),
+          ),
     );
   }
 }
