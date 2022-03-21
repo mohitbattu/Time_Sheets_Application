@@ -26,20 +26,21 @@ jobs:
           cd ..
           zip -r app.ipa Payload
       - name: Pushing the Apk and Ipa file in Github
-        uses: ncipollo/release-action@v1
+      - uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number }}
           token: ${{ secrets.TOKEN }}
           appId: ${{secrets.FIREBASE_APP_ID}}
       - name: Uploading Android artifacts to the firebase App distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
+      - uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
         with:
           appId: ${{secrets.FIREBASE_APP_ID}}
           token: ${{secrets.FIREBASE_TOKEN}}
           groups: androidtimesheettesters
           file: build/app/outputs/apk/release/app-release.apk
       - name: Uploading IOS artifacts to the firebase App distribution
+      - uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
         with:
           appId: ${{secrets.FIREBASE_APP_ID}}
           token: ${{secrets.FIREBASE_TOKEN}}
