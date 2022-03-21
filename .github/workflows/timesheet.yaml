@@ -40,7 +40,7 @@ jobs:
           appId: ${{secrets.FIREBASE_APP_ID}}
           token: ${{secrets.FIREBASE_TOKEN}}
           groups: androidtimesheettesters
-          file: build/app/outputs/bundle/release/app-release.aab
+          file: build/app/outputs/app-release.aab
       # - name: Uploading IOS artifacts to the firebase App distribution
       #   uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
       #   with:
