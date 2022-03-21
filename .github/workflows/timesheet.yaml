@@ -17,7 +17,7 @@ jobs:
       - run: flutter pub get
       - run: flutter test
       - run: flutter build apk --release
-      - run: |
+      - run:
           flutter build ios --no-codesign
           cd build/ios/iphoneos
           mkdir Payload
