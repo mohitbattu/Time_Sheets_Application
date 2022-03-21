@@ -1,7 +1,6 @@
 name: Building Application for Android and IOS
 on:
   workflow_dispatch:
-
 jobs:
   build:
     name: Build & Release
@@ -26,7 +25,7 @@ jobs:
           cd ..
           zip -r app.ipa Payload
       - name: Pushing the Apk and Ipa file in Github
-      - uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/apk/release/*,build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number }}
