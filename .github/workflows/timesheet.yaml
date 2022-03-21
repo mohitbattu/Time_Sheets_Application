@@ -27,14 +27,13 @@ jobs:
       #     ln -s ../Runner.app
       #     cd ..
       #     zip -r app.ipa Payload
-      - name: Pushing the Apk and Ipa file in Github
-        uses: ncipollo/release-action@v1
-        with:
-          # artifacts: "build/app/outputs/bundle/release/app-release.aab,build/ios/iphoneos/app.ipa"
-          artifacts: "build/app/outputs/bundle/release/app-release.aab"
-          tag: v1.0.${{ github.run_number }}
-          token: ${{ secrets.TOKEN }}
-          appId: ${{secrets.FIREBASE_APP_ID}}
+      # - name: Pushing the Apk and Ipa file in Github
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     # artifacts: "build/app/outputs/bundle/release/app-release.aab,build/ios/iphoneos/app.ipa"
+      #     artifacts: "build/app/outputs/bundle/release/app-release.aab"
+      #     tag: v1.0.${{ github.run_number }}
+      #     token: ${{ secrets.TOKEN }}
       - name: Uploading Android artifacts to the firebase App distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
         with:
