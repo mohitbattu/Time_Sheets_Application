@@ -37,7 +37,7 @@ jobs:
       # Upload generated apk to the artifacts.
       - uses: actions/upload-artifact@master
         with:
-         name: aab-release
+         name: aab-release.aab
          path: build/app/outputs/bundle/release/app-release.aab
       - name: Uploading Android artifacts to the firebase App distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
@@ -45,7 +45,7 @@ jobs:
           appId: ${{secrets.FIREBASE_APP_ID}}
           token: ${{secrets.FIREBASE_TOKEN}}
           groups: androidtimesheettesters
-          file: aab-release
+          file: aab-release.aab
       # - name: Uploading IOS artifacts to the firebase App distribution
       #   uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
       #   with:
